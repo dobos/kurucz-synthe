@@ -8,6 +8,7 @@ all: $(BINDIR)/xnfpelsyn \
 	 $(BINDIR)/rgfalllinesnew \
 	 $(BINDIR)/rpredict \
 	 $(BINDIR)/rmolecasc \
+	 $(BINDIR)/eschwbin \
 	 $(BINDIR)/rschwenk \
 	 $(BINDIR)/rh2ofast \
      $(BINDIR)/synthe \
@@ -41,6 +42,9 @@ $(BINDIR)/rpredict:
 $(BINDIR)/rmolecasc:    
 	$(FC) $(FCFLAGS) -o $@ $(SRCDIR)/rmolecasc.for
 
+$(BINDIR)/eschwbin:
+	$(FC) $(FCFLAGS) -o $@ $(SRCDIR)/eschwbin.for
+	
 $(BINDIR)/rschwenk:
 	$(FC) $(FCFLAGS) -o $@ $(SRCDIR)/rschwenk.for
 
