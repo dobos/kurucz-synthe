@@ -10,7 +10,7 @@ function read_lines() {
   local filename=$(get_filename $1)
   echo "... ... $filename"
   ln $1 fort.11
-  $BINDIR/rgfalllinesnew >$TEMPDIR/$filename.out
+  $BINDIR/rgfalllinesnew >$LINEDIR/$filename.out
   rm fort.11
 }
 
@@ -18,17 +18,22 @@ function read_mol() {
   local filename=$(get_filename $1)
   echo "... ... $filename"
   ln -s $1 fort.11
-  $BINDIR/rmolecasc >$TEMPDIR/$filename.out
+  $BINDIR/rmolecasc >$LINEDIR/$filename.out
   rm fort.11
 }
 
-WORKDIR=$1
-TEMPDIR=$2
+PARAMS=$1
+LINEDIR=$2
+
+echo "Sourcing params file"
+source $PARAMS
+
+WORKDIR=$(mktemp -d -p ./temp/)
 
 set -e
 
 WORKDIR=$(realpath $WORKDIR)
-TEMPDIR=$(realpath $TEMPDIR)
+LINEDIR=$(realpath $LINEDIR)
 BINDIR=$(realpath $BINDIR)
 DATADIR=$(realpath $DATADIR)
 
@@ -42,8 +47,8 @@ echo "Running SYNBEG"
 echo -e \
 "AIR       $SP_STA $SP_END $SP_RES 0.     0          10 .001         0   00
 AIRorVAC  WLBEG     WLEND     RESOLU    TURBV  IFNLTE LINOUT CUTOFF        NREAD
-" >$TEMPDIR/synbeg.in
-  $BINDIR/synbeg <$TEMPDIR/synbeg.in >$TEMPDIR/synbeg.out
+" >$LINEDIR/synbeg.in
+  $BINDIR/synbeg <$LINEDIR/synbeg.in >$LINEDIR/synbeg.out
 
 echo "Processing line lists..."
 
@@ -79,15 +84,15 @@ read_mol $DATADIR/linelists/linesmol/sioxx.asc
 
 echo "... TiO from Schwenke"
 
-mkdir -p $TEMPDIR/tmp
-pushd $TEMPDIR/tmp
+mkdir -p $LINEDIR/tmp
+pushd $LINEDIR/tmp
   
 ln -s $DATADIR/molecules/tio/eschw46.asc fort.11
 ln -s $DATADIR/molecules/tio/eschw47.asc fort.12
 ln -s $DATADIR/molecules/tio/eschw48.asc fort.13
 ln -s $DATADIR/molecules/tio/eschw49.asc fort.14
 ln -s $DATADIR/molecules/tio/eschw50.asc fort.15
-ln -s $TEMPDIR/eschwenke.bin fort.7
+ln -s $LINEDIR/eschwenke.bin fort.7
 $BINDIR/eschwbin
 rm fort.11
 rm fort.12
@@ -96,23 +101,26 @@ rm fort.14
 rm fort.15
   
 popd
-rm -Rf $TEMPDIR/tmp
+rm -Rf $LINEDIR/tmp
 
 ln -s $DATADIR/molecules/tio/tioschwenke.bin fort.11
-ln -s $TEMPDIR/eschwenke.bin fort.48
-$BINDIR/rschwenk >$TEMPDIR/rschwenk.out
+ln -s $LINEDIR/eschwenke.bin fort.48
+$BINDIR/rschwenk >$LINEDIR/rschwenk.out
 rm fort.11
 rm fort.48
 
 echo "... H2O (fast fix) from Partridge & Schwenke"
 
 ln -s $DATADIR/molecules/h2o/h2ofastfix.bin fort.11
-$BINDIR/rh2ofast >$TEMPDIR/h2ofastfix.out
+$BINDIR/rh2ofast >$LINEDIR/h2ofastfix.out
 rm fort.11
 
 echo "Saving outputs for reuse"
 
-cp fort.* $TEMPDIR/
-chmod -w $TEMPDIR/fort.*
+cp fort.* $LINEDIR/
+chmod -w $LINEDIR/fort.*
+
+echo Cleaning up
 
 popd
+rm -Rf $WORKDIR

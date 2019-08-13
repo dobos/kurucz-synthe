@@ -2,3 +2,4 @@ bin/*
 models/*
 temp/*
 data/*
+nb/.ipynb_checkpoints/*
